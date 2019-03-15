@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>MeowType.Graph</RootNamespace>
+    <PackageId>MeowType.Graph</PackageId>
+    <Authors>MeowType</Authors>
+    <Copyright>MeowType</Copyright>
   </PropertyGroup>
 
 </Project>
