@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>MeowType.Graph</RootNamespace>
-    <PackageId>MeowType.Graph</PackageId>
+    <RootNamespace>MeowType.Collections.Graph</RootNamespace>
+    <PackageId>MeowType.Collections.Graph</PackageId>
     <Authors>MeowType</Authors>
     <Copyright>MeowType</Copyright>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/MeowType/Graph</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MeowType/Graph</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
 </Project>

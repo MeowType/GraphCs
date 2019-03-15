@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace MeowType.Graph
+namespace MeowType.Collections.Graph
 {
     public interface IGraphGet<T, E> where E : IEnumerable<T>
     {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace MeowType.Graph
+namespace MeowType.Collections.Graph
 {
     [Serializable]
     public class Digraph<T> : IDigraph<T>, IDigraphGet<T, IEnumerable<T>>, IReadOnlyCollection<T>
