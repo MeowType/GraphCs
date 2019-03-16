@@ -6,11 +6,12 @@
     <PackageId>MeowType.Collections.Graph</PackageId>
     <Authors>MeowType</Authors>
     <Copyright>MeowType</Copyright>
-    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageLicenseUrl>https://github.com/MeowType/Graph/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/MeowType/Graph</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MeowType/Graph</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
 </Project>
