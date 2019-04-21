@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace MeowType.Collections.Graph
 {
     [Serializable]
-    public class ValueDigraph<T, V> : IValueGraph<T, V>, IDigraphGet<T, IEnumerable<T>>, IValueGraphGet<T, V, IEnumerable<V>>, IValueGraphSetIndex<T, V>
+    public class ValueDigraph<T, V> : IValueGraph<T, V>, IGraphGet<T, IEnumerable<T>>, IDigraphGet<T, IEnumerable<T>>, IValueGraphGet<T, V, IEnumerable<V>>, IValueGraphSetIndex<T, V>
     {
         [Serializable]
         protected class Node

@@ -20,6 +20,32 @@ namespace MeowType.Collections.Graph
         bool TryGetValues(T from, T to, out E values);
     }
 
+    public interface ISingleGraphGet<T>
+    {
+        T this[T index] { get; }
+        bool TryGetTo(T item, out T connection);
+        bool TryGetFrom(T to, out T from);
+    }
+
+    public interface ISingleGraphStructGet<T> where T : struct
+    {
+        T? this[T index] { get; }
+        bool TryGetTo(T item, out T? connection);
+        bool TryGetFrom(T to, out T? from);
+    }
+
+    public interface IValueSingleGraphGet<T, V>
+    {
+        V this[T from, T to] { get; }
+        bool TryGetValue(T from, T to, out V value);
+    }
+
+    public interface IValueStructSingleGraphGet<T, V> where V : struct
+    {
+        V? this[T from, T to] { get; }
+        bool TryGetValue(T from, T to, out V? value);
+    }
+
     public interface IValueGraphSet<T, V>
     {
         void Set(T item1, T item2, V value);
@@ -48,5 +74,4 @@ namespace MeowType.Collections.Graph
         bool UnSet(T item1, T item2);
         bool UnSet(T item1, T item2, V value);
     }
-
 }
