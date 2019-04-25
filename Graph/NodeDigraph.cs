@@ -6,22 +6,21 @@ using System.Collections.Generic;
 namespace MeowType.Collections.Graph
 {
     [Serializable]
-    public class ValueDigraph<T, V> : IValueGraph<T, V>, IGraphGet<T, IEnumerable<T>>, IDigraphGet<T, IEnumerable<T>>, IValueGraphGet<T, V, IEnumerable<V>>, IValueGraphSetIndex<T, V>
+    public class NodeDigraph<T> : IGraph<T>, IGraphTryGet<T, IEnumerable<T>>, IDigraphTryGet<T, IEnumerable<T>>
     {
         [Serializable]
         protected class Node
         {
-            public ConcurrentDictionary<T, HashSet<V>> to = new ConcurrentDictionary<T, HashSet<V>>();
+            public HashSet<T> to = new HashSet<T>();
             public HashSet<T> from = new HashSet<T>();
         }
+
         protected ConcurrentDictionary<T, Node> inner_table = new ConcurrentDictionary<T, Node>();
 
         virtual public int Count => inner_table.Count;
 
         virtual public bool IsReadOnly => false;
 
-        V IValueGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
-        virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
         virtual public IEnumerable<T> this[T index] => TryGetTo(index, out var vals) ? vals : null;
 
         [NonSerialized]
@@ -51,39 +50,16 @@ namespace MeowType.Collections.Graph
             {
                 if (inner_table.TryGetValue(from, out var from_node))
                 {
-                    if (from_node.to.ContainsKey(to))
+                    if (from_node.to.Contains(to))
                     {
+
                         if (inner_table.ContainsKey(to))
                         {
                             return true;
                         }
                         else
                         {
-                            from_node.to.TryRemove(to, out var _);
-                        }
-                    }
-                }
-                return false;
-            }
-        }
-        virtual public bool Has(T from, T to, V value)
-        {
-            lock (WriteLock)
-            {
-                if (inner_table.TryGetValue(from, out var from_node))
-                {
-                    if (from_node.to.TryGetValue(to, out var val_set))
-                    {
-                        if (inner_table.ContainsKey(to))
-                        {
-                            if (val_set.Contains(value))
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            from_node.to.TryRemove(to, out var _);
+                            from_node.to.Remove(to);
                         }
                     }
                 }
@@ -91,18 +67,16 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        virtual public void Set(T from, T to, V value)
+        virtual public void Set(T from, T to)
         {
             lock (WriteLock)
             {
                 var from_node = GetOrAddNode(from);
                 var to_node = GetOrAddNode(to);
-                var val_set = from_node.to.GetOrAdd(to, i => new HashSet<V>());
-                val_set.Add(value);
+                from_node.to.Add(to);
                 to_node.from.Add(from);
             }
         }
-
         virtual public bool UnSet(T from, T to)
         {
             lock (WriteLock)
@@ -111,28 +85,9 @@ namespace MeowType.Collections.Graph
                 {
                     if (inner_table.TryGetValue(to, out var to_node))
                     {
-                        from_node.to.TryRemove(to, out var _);
+                        from_node.to.Remove(to);
                         to_node.from.Remove(from);
                         return true;
-                    }
-                }
-                return false;
-            }
-        }
-        virtual public bool UnSet(T from, T to, V value)
-        {
-            lock (WriteLock)
-            {
-                if (inner_table.TryGetValue(from, out var from_node))
-                {
-                    if (from_node.to.TryGetValue(to, out var val_set))
-                    {
-                        if (!inner_table.ContainsKey(to))
-                        {
-                            from_node.to.TryRemove(to, out var _);
-                            return false;
-                        }
-                        return val_set.Remove(value);
                     }
                 }
                 return false;
@@ -145,7 +100,7 @@ namespace MeowType.Collections.Graph
             {
                 if (inner_table.TryGetValue(from, out var from_node))
                 {
-                    tos = from_node.to.Keys;
+                    tos = from_node.to;
                     return true;
                 }
             }
@@ -165,22 +120,6 @@ namespace MeowType.Collections.Graph
             froms = null;
             return false;
         }
-        virtual public bool TryGetValues(T from, T to, out IEnumerable<V> values)
-        {
-            lock (WriteLock)
-            {
-                if (inner_table.TryGetValue(from, out var from_node))
-                {
-                    if (from_node.to.TryGetValue(to, out var val_set))
-                    {
-                        values = val_set;
-                        return true;
-                    }
-                }
-                values = null;
-                return false;
-            }
-        }
 
         virtual public bool Remove(T item)
         {
@@ -192,10 +131,10 @@ namespace MeowType.Collections.Graph
                     {
                         if (inner_table.TryGetValue(from, out var from_node))
                         {
-                            from_node.to.TryRemove(item, out var _);
+                            from_node.to.Remove(item);
                         }
                     }
-                    foreach (var to in node.to.Keys)
+                    foreach (var to in node.to)
                     {
                         if (inner_table.TryGetValue(to, out var to_node))
                         {
@@ -210,14 +149,14 @@ namespace MeowType.Collections.Graph
     }
 
     [Serializable]
-    public class MutualValueGraph<T, V> : ValueDigraph<T, V>
+    public class MutualNodeGraph<T> : NodeDigraph<T>
     {
-        public override void Set(T item1, T item2, V value)
+        public override void Set(T item1, T item2)
         {
             lock (WriteLock)
             {
-                base.Set(item1, item2, value);
-                base.Set(item2, item1, value);
+                base.Set(item1, item2);
+                base.Set(item2, item1);
             }
         }
 
@@ -227,16 +166,6 @@ namespace MeowType.Collections.Graph
             {
                 var ba = base.UnSet(item1, item2);
                 var bb = base.UnSet(item2, item1);
-                return ba || bb;
-            }
-        }
-
-        public override bool UnSet(T item1, T item2, V value)
-        {
-            lock (WriteLock)
-            {
-                var ba = base.UnSet(item1, item2, value);
-                var bb = base.UnSet(item2, item1, value);
                 return ba || bb;
             }
         }

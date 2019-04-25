@@ -7,7 +7,7 @@ using System.Text;
 namespace MeowType.Collections.Graph
 {
     [Serializable]
-    public class SingleGraphStruct<T> : IGraph<T>, ISingleGraphStructGet<T> where T : struct
+    public class NodeSingleDigraphStruct<T> : IGraph<T>, ISingleGraphValueTryGet<T> where T : struct
     {
         [Serializable]
         protected class Node
@@ -148,7 +148,7 @@ namespace MeowType.Collections.Graph
         }
     }
     [Serializable]
-    public class SingleGraph<T> : IGraph<T>, ISingleGraphGet<T> where T : class
+    public class NodeSingleDigraph<T> : IGraph<T>, ISingleGraphTryGet<T> where T : class
     {
         [Serializable]
         protected class Node
