@@ -6,7 +6,8 @@ using System.Collections.Generic;
 namespace MeowType.Collections.Graph
 {
     [Serializable]
-    public class ValueSingleGraphValue<T, V> : IDataGraph<T, V>, ISingleGraphValueTryGet<T>, IDataValueSingleGraphGet<T, V>, IDataGraphSetIndex<T, V> where T : struct where V : struct
+    public class ValueSingleGraphValue<T, V> : IGraph<T> , IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, IValueSingleDigraphTryGet<T>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphUnSet<T, V>, IDataSingleGraph<T, V>, IDataSingleGraphValueGet<T, V>
+        where T : struct where V : struct
     {
         [Serializable]
         protected class Node
@@ -21,7 +22,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
         virtual public V? this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T? this[T index] => TryGetTo(index, out var val) ? val : null;
 
@@ -214,7 +214,8 @@ namespace MeowType.Collections.Graph
         }
     }
     [Serializable]
-    public class SingleGraphValue<T, V> : IDataGraph<T, V>, ISingleGraphValueTryGet<T>, IDataSingleGraphGet<T, V>, IDataGraphSetIndex<T, V> where T : struct where V : class
+    public class SingleGraphValue<T, V> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, IValueSingleDigraphTryGet<T>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphUnSet<T, V>, IDataSingleGraph<T, V>, IDataSingleGraphGet<T, V>
+        where T : struct where V : class
     {
         [Serializable]
         protected class Node
@@ -229,7 +230,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
         virtual public V this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T? this[T index] => TryGetTo(index, out var val) ? val : null;
 
@@ -423,7 +423,8 @@ namespace MeowType.Collections.Graph
     }
 
     [Serializable]
-    public class ValueSingleGraph<T, V> : IDataGraph<T, V>, ISingleGraphTryGet<T>, IDataValueSingleGraphGet<T, V>, IDataGraphSetIndex<T, V> where T : class where V : struct
+    public class ValueSingleGraph<T, V> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, ISingleDigraphTryGet<T>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphUnSet<T, V>, IDataSingleGraph<T, V>, IDataSingleGraphValueGet<T, V>
+        where T : class where V : struct
     {
         [Serializable]
         protected class Node
@@ -438,7 +439,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
         virtual public V? this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T this[T index] => TryGetTo(index, out var val) ? val : null;
 
@@ -631,7 +631,8 @@ namespace MeowType.Collections.Graph
         }
     }
     [Serializable]
-    public class SingleGraph<T, V> : IDataGraph<T, V>, ISingleGraphTryGet<T>, IDataSingleGraphGet<T, V>, IDataGraphSetIndex<T, V> where T : class where V : class
+    public class SingleGraph<T, V> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, ISingleDigraphTryGet<T>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphUnSet<T, V>, IDataSingleGraph<T, V>, IDataSingleGraphGet<T, V>
+        where T : class where V : class
     {
         [Serializable]
         protected class Node
@@ -646,7 +647,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
         virtual public V this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T this[T index] => TryGetTo(index, out var val) ? val : null;
 
@@ -840,7 +840,8 @@ namespace MeowType.Collections.Graph
     }
 
     [Serializable]
-    public class ValueSingleGraphValue<T> : IDataGraphValue<T>, ISingleGraphValueTryGet<T>, IDataValueSingleGraphGet<T> where T : struct
+    public class ValueSingleGraphValue<T> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, IValueSingleDigraphTryGet<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphValueUnSet<T>, IDataSingleGraph<T>, IDataSingleGraphValueGet<T>
+        where T : struct
     {
         [Serializable]
         protected class Node
@@ -855,8 +856,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        //object IDataGraphSetIndex<T>.this[T from, T to] { set => Set(from, to, value); }
-        //virtual public V? this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T? this[T index] => TryGetTo(index, out var val) ? val : null;
 
         [NonSerialized]
@@ -1091,7 +1090,8 @@ namespace MeowType.Collections.Graph
         }
     }
     [Serializable]
-    public class SingleGraphValue<T> : IDataGraph<T>, ISingleGraphValueTryGet<T>, IDataSingleGraphGet<T> where T : struct
+    public class SingleGraphValue<T> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, IValueSingleDigraphTryGet<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphUnSet<T>, IDataSingleGraph<T>, IDataSingleGraphGet<T> 
+        where T : struct
     {
         [Serializable]
         protected class Node
@@ -1106,8 +1106,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        //V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
-        //virtual public V this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T? this[T index] => TryGetTo(index, out var val) ? val : null;
 
         [NonSerialized]
@@ -1343,7 +1341,8 @@ namespace MeowType.Collections.Graph
     }
 
     [Serializable]
-    public class ValueSingleGraph<T> : IDataGraphValue<T>, ISingleGraphTryGet<T>, IDataValueSingleGraphGet<T> where T : class
+    public class ValueSingleGraph<T> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, ISingleDigraphTryGet<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphValueUnSet<T>, IDataSingleGraph<T>, IDataSingleGraphValueGet<T>
+        where T : class
     {
         [Serializable]
         protected class Node
@@ -1358,8 +1357,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        //object IDataGraphSetIndex<T>.this[T from, T to] { set => Set(from, to, value); }
-        //virtual public V? this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T this[T index] => TryGetTo(index, out var val) ? val : null;
 
         [NonSerialized]
@@ -1594,7 +1591,8 @@ namespace MeowType.Collections.Graph
         }
     }
     [Serializable]
-    public class SingleGraph<T> : IDataGraph<T>, ISingleGraphTryGet<T>, IDataSingleGraphGet<T> where T : class 
+    public class SingleGraph<T> : IGraph<T>, IGraphHas<T>, IGraphUnSet<T>, ISingleDigraph<T>, ISingleDigraphTryGet<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphUnSet<T>, IDataSingleGraph<T>, IDataSingleGraphGet<T>
+        where T : class 
     {
         [Serializable]
         protected class Node
@@ -1609,8 +1607,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        //V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
-        //virtual public V this[T from, T to] => TryGetValue(from, to, out var val) ? val : null;
         virtual public T this[T index] => TryGetTo(index, out var val) ? val : null;
 
         [NonSerialized]

@@ -1,0 +1,1181 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Text;
+
+namespace MeowType.Collections.Graph
+{
+    
+    [Serializable]
+    public class LinkedGraph<T, V>: ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+        where T : class where V : class
+    {
+        protected class Node
+        {
+            public ConcurrentDictionary<T, HashSet<V>> bind = new ConcurrentDictionary<T, HashSet<V>>();
+            public T Last { get; set; }
+            public T Next { get; set; }
+        }
+
+        protected ConcurrentDictionary<T, Node> inner_table = new ConcurrentDictionary<T, Node>();
+        protected ConcurrentDictionary<(T, T), V> link_table = new ConcurrentDictionary<(T, T), V>();
+
+        virtual public int Count => inner_table.Count;
+
+        virtual public bool IsReadOnly => false;
+
+        virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
+        virtual public IEnumerable<T> this[T index] => TryGetBinds(index, out var vals) ? vals : null;
+
+        [NonSerialized]
+        protected object WriteLock = new object();
+
+        virtual public void Add(T item)
+        {
+            lock (WriteLock)
+            {
+                inner_table.GetOrAdd(item, _ => new Node());
+            }
+        }
+        virtual protected Node GetOrAddNode(T item) => inner_table.GetOrAdd(item, _ => new Node());
+
+        virtual public void Clear() => inner_table.Clear();
+
+        virtual public void CopyTo(T[] array, int arrayIndex) => inner_table.Keys.CopyTo(array, arrayIndex);
+
+        virtual public IEnumerator<T> GetEnumerator() => inner_table.Keys.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => inner_table.Keys.GetEnumerator();
+
+        virtual public bool Contains(T item) => Has(item);
+        virtual public bool Has(T item) => inner_table.ContainsKey(item);
+        virtual public bool Has(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.ContainsKey(to) && to_node.bind.ContainsKey(from))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool Has(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Contains(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public void Set(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(from);
+                var to_node = GetOrAddNode(to);
+                var val_set = from_node.bind.GetOrAdd(to, i => new HashSet<V>());
+                to_node.bind.AddOrUpdate(from, val_set, (_t, _v) => val_set);
+                val_set.Add(value);
+            }
+        }
+
+        virtual public bool UnSet(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    var f = from_node.bind.TryRemove(to, out var _);
+                    var t= to_node.bind.TryRemove(from, out var _);
+                    if (f || t)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool UnSet(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Remove(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public bool TryGetBinds(T from, out IEnumerable<T> binds)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node))
+                {
+                    binds = from_node.bind.Keys;
+                    return true;
+                }
+            }
+            binds = null;
+            return false;
+        }
+        virtual public bool TryGetValues(T from, T to, out IEnumerable<V> values)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        values = vals;
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                values = null;
+                return false;
+            }
+        }
+
+        virtual public bool Remove(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryRemove(item, out var node))
+                {
+                    foreach (var bind in node.bind.Keys)
+                    {
+                        if (inner_table.TryGetValue(bind, out var bind_node))
+                        {
+                            bind_node.bind.TryRemove(item, out var _);
+                        }
+                    }
+                    if (node.Next != null && inner_table.TryGetValue(node.Next, out var next))
+                    {
+                        next.Last = null;
+                    }
+                    if (node.Last != null && inner_table.TryGetValue(node.Last, out var last))
+                    {
+                        last.Next = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.ContainsKey((item1, item2)))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                if(link_table.TryGetValue((item1, item2), out var val))
+                {
+                    if (val.Equals(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public void Link(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(item1);
+                var to_node = GetOrAddNode(item2);
+                link_table.AddOrUpdate((item1, item2), value, (_t, _v) => value);
+            }
+        }
+
+        public bool UnLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if(link_table.TryRemove((item1, item2), out var _))
+                {
+                    if (inner_table.TryGetValue(item1, out var a_node))
+                    {
+                        a_node.Next = null;
+                    }
+                    if (inner_table.TryGetValue(item2, out var b_node))
+                    {
+                        b_node.Last = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool TryGetLinkValue(T item1, T item2, out V value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            }
+        }
+
+        public T Next(T item)
+        {
+            lock (WriteLock)
+            {
+                if(inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Next;
+                }
+                return null;
+            }
+        }
+
+        public T Last(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Last;
+                }
+                return null;
+            }
+        }
+    }
+
+    [Serializable]
+    public class LinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+        where T : class where V : struct
+    {
+        protected class Node
+        {
+            public ConcurrentDictionary<T, HashSet<V>> bind = new ConcurrentDictionary<T, HashSet<V>>();
+            public T Last { get; set; }
+            public T Next { get; set; }
+        }
+
+        protected ConcurrentDictionary<T, Node> inner_table = new ConcurrentDictionary<T, Node>();
+        protected ConcurrentDictionary<(T, T), V?> link_table = new ConcurrentDictionary<(T, T), V?>();
+
+        virtual public int Count => inner_table.Count;
+
+        virtual public bool IsReadOnly => false;
+
+        virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
+        virtual public IEnumerable<T> this[T index] => TryGetBinds(index, out var vals) ? vals : null;
+
+        [NonSerialized]
+        protected object WriteLock = new object();
+
+        virtual public void Add(T item)
+        {
+            lock (WriteLock)
+            {
+                inner_table.GetOrAdd(item, _ => new Node());
+            }
+        }
+        virtual protected Node GetOrAddNode(T item) => inner_table.GetOrAdd(item, _ => new Node());
+
+        virtual public void Clear() => inner_table.Clear();
+
+        virtual public void CopyTo(T[] array, int arrayIndex) => inner_table.Keys.CopyTo(array, arrayIndex);
+
+        virtual public IEnumerator<T> GetEnumerator() => inner_table.Keys.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => inner_table.Keys.GetEnumerator();
+
+        virtual public bool Contains(T item) => Has(item);
+        virtual public bool Has(T item) => inner_table.ContainsKey(item);
+        virtual public bool Has(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.ContainsKey(to) && to_node.bind.ContainsKey(from))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool Has(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Contains(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public void Set(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(from);
+                var to_node = GetOrAddNode(to);
+                var val_set = from_node.bind.GetOrAdd(to, i => new HashSet<V>());
+                to_node.bind.AddOrUpdate(from, val_set, (_t, _v) => val_set);
+                val_set.Add(value);
+            }
+        }
+
+        virtual public bool UnSet(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    var f = from_node.bind.TryRemove(to, out var _);
+                    var t = to_node.bind.TryRemove(from, out var _);
+                    if (f || t)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool UnSet(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Remove(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public bool TryGetBinds(T from, out IEnumerable<T> binds)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node))
+                {
+                    binds = from_node.bind.Keys;
+                    return true;
+                }
+            }
+            binds = null;
+            return false;
+        }
+        virtual public bool TryGetValues(T from, T to, out IEnumerable<V> values)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        values = vals;
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                values = null;
+                return false;
+            }
+        }
+
+        virtual public bool Remove(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryRemove(item, out var node))
+                {
+                    foreach (var bind in node.bind.Keys)
+                    {
+                        if (inner_table.TryGetValue(bind, out var bind_node))
+                        {
+                            bind_node.bind.TryRemove(item, out var _);
+                        }
+                    }
+                    if (node.Next != null && inner_table.TryGetValue(node.Next, out var next))
+                    {
+                        next.Last = null;
+                    }
+                    if (node.Last != null && inner_table.TryGetValue(node.Last, out var last))
+                    {
+                        last.Next = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.ContainsKey((item1, item2)))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    if (val.Equals(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public void Link(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(item1);
+                var to_node = GetOrAddNode(item2);
+                link_table.AddOrUpdate((item1, item2), value, (_t, _v) => value);
+            }
+        }
+
+        public bool UnLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryRemove((item1, item2), out var _))
+                {
+                    if (inner_table.TryGetValue(item1, out var a_node))
+                    {
+                        a_node.Next = null;
+                    }
+                    if (inner_table.TryGetValue(item2, out var b_node))
+                    {
+                        b_node.Last = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool TryGetLinkValue(T item1, T item2, out V? value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            }
+        }
+
+        public T Next(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Next;
+                }
+                return null;
+            }
+        }
+
+        public T Last(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Last;
+                }
+                return null;
+            }
+        }
+    }
+
+    [Serializable]
+    public class ValueLinkedGraph<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+        where T : struct where V : class
+    {
+        protected class Node
+        {
+            public ConcurrentDictionary<T, HashSet<V>> bind = new ConcurrentDictionary<T, HashSet<V>>();
+            public T? Last { get; set; }
+            public T? Next { get; set; }
+        }
+
+        protected ConcurrentDictionary<T, Node> inner_table = new ConcurrentDictionary<T, Node>();
+        protected ConcurrentDictionary<(T, T), V> link_table = new ConcurrentDictionary<(T, T), V>();
+
+        virtual public int Count => inner_table.Count;
+
+        virtual public bool IsReadOnly => false;
+
+        virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
+        virtual public IEnumerable<T> this[T index] => TryGetBinds(index, out var vals) ? vals : null;
+
+        [NonSerialized]
+        protected object WriteLock = new object();
+
+        virtual public void Add(T item)
+        {
+            lock (WriteLock)
+            {
+                inner_table.GetOrAdd(item, _ => new Node());
+            }
+        }
+        virtual protected Node GetOrAddNode(T item) => inner_table.GetOrAdd(item, _ => new Node());
+
+        virtual public void Clear() => inner_table.Clear();
+
+        virtual public void CopyTo(T[] array, int arrayIndex) => inner_table.Keys.CopyTo(array, arrayIndex);
+
+        virtual public IEnumerator<T> GetEnumerator() => inner_table.Keys.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => inner_table.Keys.GetEnumerator();
+
+        virtual public bool Contains(T item) => Has(item);
+        virtual public bool Has(T item) => inner_table.ContainsKey(item);
+        virtual public bool Has(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.ContainsKey(to) && to_node.bind.ContainsKey(from))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool Has(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Contains(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public void Set(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(from);
+                var to_node = GetOrAddNode(to);
+                var val_set = from_node.bind.GetOrAdd(to, i => new HashSet<V>());
+                to_node.bind.AddOrUpdate(from, val_set, (_t, _v) => val_set);
+                val_set.Add(value);
+            }
+        }
+
+        virtual public bool UnSet(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    var f = from_node.bind.TryRemove(to, out var _);
+                    var t = to_node.bind.TryRemove(from, out var _);
+                    if (f || t)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool UnSet(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Remove(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public bool TryGetBinds(T from, out IEnumerable<T> binds)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node))
+                {
+                    binds = from_node.bind.Keys;
+                    return true;
+                }
+            }
+            binds = null;
+            return false;
+        }
+        virtual public bool TryGetValues(T from, T to, out IEnumerable<V> values)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        values = vals;
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                values = null;
+                return false;
+            }
+        }
+
+        virtual public bool Remove(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryRemove(item, out var node))
+                {
+                    foreach (var bind in node.bind.Keys)
+                    {
+                        if (inner_table.TryGetValue(bind, out var bind_node))
+                        {
+                            bind_node.bind.TryRemove(item, out var _);
+                        }
+                    }
+                    if (node.Next != null && inner_table.TryGetValue(node.Next.Value, out var next))
+                    {
+                        next.Last = null;
+                    }
+                    if (node.Last != null && inner_table.TryGetValue(node.Last.Value, out var last))
+                    {
+                        last.Next = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.ContainsKey((item1, item2)))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    if (val.Equals(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public void Link(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(item1);
+                var to_node = GetOrAddNode(item2);
+                link_table.AddOrUpdate((item1, item2), value, (_t, _v) => value);
+            }
+        }
+
+        public bool UnLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryRemove((item1, item2), out var _))
+                {
+                    if (inner_table.TryGetValue(item1, out var a_node))
+                    {
+                        a_node.Next = null;
+                    }
+                    if (inner_table.TryGetValue(item2, out var b_node))
+                    {
+                        b_node.Last = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool TryGetLinkValue(T item1, T item2, out V value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            }
+        }
+
+        public T? Next(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Next;
+                }
+                return null;
+            }
+        }
+
+        public T? Last(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Last;
+                }
+                return null;
+            }
+        }
+    }
+
+    [Serializable]
+    public class ValueLinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+        where T : struct where V : struct
+    {
+        protected class Node
+        {
+            public ConcurrentDictionary<T, HashSet<V>> bind = new ConcurrentDictionary<T, HashSet<V>>();
+            public T? Last { get; set; }
+            public T? Next { get; set; }
+        }
+
+        protected ConcurrentDictionary<T, Node> inner_table = new ConcurrentDictionary<T, Node>();
+        protected ConcurrentDictionary<(T, T), V?> link_table = new ConcurrentDictionary<(T, T), V?>();
+
+        virtual public int Count => inner_table.Count;
+
+        virtual public bool IsReadOnly => false;
+
+        virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
+        virtual public IEnumerable<T> this[T index] => TryGetBinds(index, out var vals) ? vals : null;
+
+        [NonSerialized]
+        protected object WriteLock = new object();
+
+        virtual public void Add(T item)
+        {
+            lock (WriteLock)
+            {
+                inner_table.GetOrAdd(item, _ => new Node());
+            }
+        }
+        virtual protected Node GetOrAddNode(T item) => inner_table.GetOrAdd(item, _ => new Node());
+
+        virtual public void Clear() => inner_table.Clear();
+
+        virtual public void CopyTo(T[] array, int arrayIndex) => inner_table.Keys.CopyTo(array, arrayIndex);
+
+        virtual public IEnumerator<T> GetEnumerator() => inner_table.Keys.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => inner_table.Keys.GetEnumerator();
+
+        virtual public bool Contains(T item) => Has(item);
+        virtual public bool Has(T item) => inner_table.ContainsKey(item);
+        virtual public bool Has(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.ContainsKey(to) && to_node.bind.ContainsKey(from))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool Has(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Contains(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public void Set(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(from);
+                var to_node = GetOrAddNode(to);
+                var val_set = from_node.bind.GetOrAdd(to, i => new HashSet<V>());
+                to_node.bind.AddOrUpdate(from, val_set, (_t, _v) => val_set);
+                val_set.Add(value);
+            }
+        }
+
+        virtual public bool UnSet(T from, T to)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    var f = from_node.bind.TryRemove(to, out var _);
+                    var t = to_node.bind.TryRemove(from, out var _);
+                    if (f || t)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        virtual public bool UnSet(T from, T to, V value)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var values) && to_node.bind.ContainsKey(from))
+                    {
+                        if (values.Remove(value))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                return false;
+            }
+        }
+
+        virtual public bool TryGetBinds(T from, out IEnumerable<T> binds)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node))
+                {
+                    binds = from_node.bind.Keys;
+                    return true;
+                }
+            }
+            binds = null;
+            return false;
+        }
+        virtual public bool TryGetValues(T from, T to, out IEnumerable<V> values)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        values = vals;
+                        return true;
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                values = null;
+                return false;
+            }
+        }
+
+        virtual public bool Remove(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryRemove(item, out var node))
+                {
+                    foreach (var bind in node.bind.Keys)
+                    {
+                        if (inner_table.TryGetValue(bind, out var bind_node))
+                        {
+                            bind_node.bind.TryRemove(item, out var _);
+                        }
+                    }
+                    if (node.Next != null && inner_table.TryGetValue(node.Next.Value, out var next))
+                    {
+                        next.Last = null;
+                    }
+                    if (node.Last != null && inner_table.TryGetValue(node.Last.Value, out var last))
+                    {
+                        last.Next = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.ContainsKey((item1, item2)))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool HasLink(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    if (val.Equals(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public void Link(T item1, T item2, V value)
+        {
+            lock (WriteLock)
+            {
+                var from_node = GetOrAddNode(item1);
+                var to_node = GetOrAddNode(item2);
+                link_table.AddOrUpdate((item1, item2), value, (_t, _v) => value);
+            }
+        }
+
+        public bool UnLink(T item1, T item2)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryRemove((item1, item2), out var _))
+                {
+                    if (inner_table.TryGetValue(item1, out var a_node))
+                    {
+                        a_node.Next = null;
+                    }
+                    if (inner_table.TryGetValue(item2, out var b_node))
+                    {
+                        b_node.Last = null;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool TryGetLinkValue(T item1, T item2, out V? value)
+        {
+            lock (WriteLock)
+            {
+                if (link_table.TryGetValue((item1, item2), out var val))
+                {
+                    value = val;
+                    return true;
+                }
+                value = null;
+                return false;
+            }
+        }
+
+        public T? Next(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Next;
+                }
+                return null;
+            }
+        }
+
+        public T? Last(T item)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    return node.Last;
+                }
+                return null;
+            }
+        }
+    }
+}

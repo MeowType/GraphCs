@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace MeowType.Collections.Graph
 {
     [Serializable]
-    public class Digraph<T, V> : IDataGraph<T, V>, IGraphTryGet<T, IEnumerable<T>>, IDigraphTryGet<T, IEnumerable<T>>, IDataGraphTryGet<T, V, IEnumerable<V>>, IDataGraphSetIndex<T, V>
+    public class Digraph<T, V> : IDigraph<T>, IDigraphTryGet<T>, IGraphHas<T>, IGraphUnSet<T>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>
     {
         [Serializable]
         protected class Node
@@ -20,7 +20,6 @@ namespace MeowType.Collections.Graph
 
         virtual public bool IsReadOnly => false;
 
-        V IDataGraphSetIndex<T, V>.this[T from, T to] { set => Set(from, to, value); }
         virtual public IEnumerable<V> this[T from, T to] => TryGetValues(from, to, out var vals) ? vals : null;
         virtual public IEnumerable<T> this[T index] => TryGetTo(index, out var vals) ? vals : null;
 

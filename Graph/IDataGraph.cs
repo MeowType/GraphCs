@@ -1,94 +1,113 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace MeowType.Collections.Graph
 {
     #region <T, V>
 
-    public interface IDataGraphSet<T, V>
+    public interface IDataGraphSet<T, V>: IDataGraph<T, V>
     {
         void Set(T item1, T item2, V value);
     }
 
-    public interface IDataGraphSetIndex<T, V> : IDataGraphSet<T, V>
-    {
-        V this[T from, T to] { set; }
-    }
-
-    public interface IDataGraph<T, V> : IReadOnlyGraph<T>, IDataGraphSet<T, V>
+    public interface IDataGraphHas<T, V>: IReadOnlyDataGraph<T, V>
     {
         bool Has(T item1, T item2, V value);
+    }
+
+    public interface IDataGraphUnSet<T, V>: IDataGraph<T, V>
+    {
         bool UnSet(T item1, T item2);
         bool UnSet(T item1, T item2, V value);
     }
 
-    public interface IDataGraphTryGet<T, V, E> where E : IEnumerable<V>
+    public interface IDataGraph<T, V> : IGraph<T> , IReadOnlyDataGraph<T, V> { }
+    public interface IReadOnlyDataGraph<T, V> : IReadOnlyGraph<T> { }
+
+    public interface IDataGraphTryGet<T, V>
     {
-        E this[T from, T to] { get; }
-        bool TryGetValues(T from, T to, out E values);
+        IEnumerable<V> this[T from, T to] { get; }
+        bool TryGetValues(T from, T to, out IEnumerable<V> values);
     }
 
     #endregion
 
     #region <T>
 
-    public interface IDataGraphSet<T>
+    public interface IDataGraphSet<T> : IDataGraph<T>
     {
         void Set<V>(T item1, T item2, V value) where V : class;
     }
 
-    public interface IDataGraph<T> : IReadOnlyGraph<T>, IDataGraphSet<T>
+    public interface IDataGraphHas<T> : IReadOnlyDataGraph<T>, IGraphHas<T>
     {
+        bool Has<V>(T item1, T item2) where V : class;
         bool Has<V>(T item1, T item2, V value) where V : class;
-        bool UnSet(T item1, T item2);
+    }
+
+    public interface IDataGraphUnSet<T> : IDataGraph<T> , IGraphUnSet<T>
+    {
+        bool UnSet<V>(T item1, T item2) where V : class;
         bool UnSet<V>(T item1, T item2, V value) where V : class;
     }
 
-    public interface IDataGraphTryGet<T>
+    public interface IDataGraphTryGet<T> : IReadOnlyDataGraph<T>
     {
         bool TryGetValues<V>(T from, T to, out IEnumerable<V> values) where V : class;
     }
 
-    public interface IDataGraphValueSet<T>
+    public interface IDataGraphValueSet<T> : IDataGraph<T>
     {
         void Set<V>(T item1, T item2, V value) where V : struct;
     }
 
-    public interface IDataGraphValue<T> : IReadOnlyGraph<T>, IDataGraphValueSet<T>
+    public interface IDataGraphValueHas<T> : IReadOnlyDataGraph<T>, IGraphHas<T>
     {
         bool Has<V>(T item1, T item2) where V : struct;
         bool Has<V>(T item1, T item2, V value) where V : struct;
-        bool UnSet(T item1, T item2);
+    }
+
+    public interface IDataGraphValueUnSet<T> : IDataGraph<T>, IGraphUnSet<T>
+    {
         bool UnSet<V>(T item1, T item2) where V : struct;
         bool UnSet<V>(T item1, T item2, V value) where V : struct;
     }
+
+    public interface IDataGraphValueTryGet<T> : IReadOnlyDataGraph<T>
+    {
+        bool TryGetValues<V>(T from, T to, out IEnumerable<V> values) where V : struct;
+    }
+
+    public interface IDataGraph<T> : IGraph<T>, IReadOnlyDataGraph<T> { }
+    public interface IReadOnlyDataGraph<T> : IReadOnlyGraph<T> { }
 
     #endregion
 
     #region SingleGraph
 
-    public interface IDataSingleGraphGet<T, V>
+    public interface IDataSingleGraphGet<T, V> : IReadOnlyDataGraph<T, V> where V : class 
     {
-        V this[T from, T to] { get; }
         bool TryGetValue(T from, T to, out V value);
     }
 
-    public interface IDataValueSingleGraphGet<T, V> where V : struct
+    public interface IDataSingleGraphValueGet<T, V> : IReadOnlyDataGraph<T, V> where V : struct
     {
-        V? this[T from, T to] { get; }
         bool TryGetValue(T from, T to, out V? value);
     }
 
-    public interface IDataSingleGraphGet<T>
+    public interface IDataSingleGraphGet<T> : IReadOnlyDataSingleGraph<T>
     {
         bool TryGetValue<V>(T from, T to, out V value) where V : class;
     }
 
-    public interface IDataValueSingleGraphGet<T>
+    public interface IDataSingleGraphValueGet<T> : IReadOnlyDataSingleGraph<T>
     {
         bool TryGetValue<V>(T from, T to, out V? value) where V : struct;
     }
+
+    public interface IDataSingleGraph<T, V> : IDataGraph<T, V>, IReadOnlyDataSingleGraph<T, V> { }
+    public interface IReadOnlyDataSingleGraph<T, V> : IReadOnlyDataGraph<T, V> { }
+    public interface IDataSingleGraph<T> : IDataGraph<T>, IReadOnlyDataSingleGraph<T> { }
+    public interface IReadOnlyDataSingleGraph<T> : IReadOnlyDataGraph<T> { }
 
     #endregion
 }
