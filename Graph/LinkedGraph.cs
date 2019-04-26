@@ -8,7 +8,7 @@ namespace MeowType.Collections.Graph
 {
     
     [Serializable]
-    public class LinkedGraph<T, V>: ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraph<T, V>: ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, ILinkedGraphTryNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class where V : class
     {
         protected class Node
@@ -204,7 +204,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -216,7 +216,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2, V value)
+        virtual public bool HasLink(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -231,7 +231,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link(T item1, T item2, V value)
+        virtual public void Link(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -241,7 +241,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -261,7 +261,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue(T item1, T item2, out V value)
+        virtual public bool TryGetLinkValue(T item1, T item2, out V value)
         {
             lock (WriteLock)
             {
@@ -275,7 +275,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Next(T item)
+        virtual public T Next(T item)
         {
             lock (WriteLock)
             {
@@ -287,7 +287,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Last(T item)
+        virtual public T Last(T item)
         {
             lock (WriteLock)
             {
@@ -298,10 +298,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class LinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, ILinkedGraphNextLast<T, V>, ILinkedGraphTryNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class where V : struct
     {
         protected class Node
@@ -497,7 +525,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -509,7 +537,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2, V value)
+        virtual public bool HasLink(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -524,7 +552,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link(T item1, T item2, V value)
+        virtual public void Link(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -534,7 +562,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -554,7 +582,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue(T item1, T item2, out V? value)
+        virtual public bool TryGetLinkValue(T item1, T item2, out V? value)
         {
             lock (WriteLock)
             {
@@ -568,7 +596,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Next(T item)
+        virtual public T Next(T item)
         {
             lock (WriteLock)
             {
@@ -580,7 +608,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Last(T item)
+        virtual public T Last(T item)
         {
             lock (WriteLock)
             {
@@ -591,10 +619,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraph<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraph<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IValueLinkedGraphTryNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct where V : class
     {
         protected class Node
@@ -790,7 +846,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -802,7 +858,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2, V value)
+        virtual public bool HasLink(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -817,7 +873,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link(T item1, T item2, V value)
+        virtual public void Link(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -827,7 +883,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -847,7 +903,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue(T item1, T item2, out V value)
+        virtual public bool TryGetLinkValue(T item1, T item2, out V value)
         {
             lock (WriteLock)
             {
@@ -861,7 +917,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Next(T item)
+        virtual public T? Next(T item)
         {
             lock (WriteLock)
             {
@@ -873,7 +929,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Last(T item)
+        virtual public T? Last(T item)
         {
             lock (WriteLock)
             {
@@ -884,10 +940,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T? next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T? last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraphValue<T, V> : ILinkedGraph<T, V>, ILinkedGraphHasLink<T, V>, ILinkedGraphLink<T, V>, ILinkedGraphUnLink<T, V>, ILinkedGraphTryGet<T, V>, ILinkedGraphValueTryGetLinkValue<T, V>, IValueLinkedGraphNextLast<T, V>, IValueLinkedGraphTryNextLast<T, V>, IDataGraph<T, V>, IDataGraphHas<T, V>, IDataGraphSet<T, V>, IDataGraphTryGet<T, V>, IDataGraphUnSet<T, V>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct where V : struct
     {
         protected class Node
@@ -1083,7 +1167,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1095,7 +1179,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2, V value)
+        virtual public bool HasLink(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -1110,7 +1194,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link(T item1, T item2, V value)
+        virtual public void Link(T item1, T item2, V value)
         {
             lock (WriteLock)
             {
@@ -1120,7 +1204,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1140,7 +1224,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue(T item1, T item2, out V? value)
+        virtual public bool TryGetLinkValue(T item1, T item2, out V? value)
         {
             lock (WriteLock)
             {
@@ -1154,7 +1238,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Next(T item)
+        virtual public T? Next(T item)
         {
             lock (WriteLock)
             {
@@ -1166,7 +1250,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Last(T item)
+        virtual public T? Last(T item)
         {
             lock (WriteLock)
             {
@@ -1177,11 +1261,39 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T? next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T? last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
 
     [Serializable]
-    public class LinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, ILinkedGraphNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class
     {
         protected class Node
@@ -1423,7 +1535,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1434,7 +1546,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2) where V : class
+        virtual public bool HasLink<V>(T item1, T item2) where V : class
         {
             lock (WriteLock)
             {
@@ -1445,7 +1557,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2, V value) where V : class
+        virtual public bool HasLink<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -1460,7 +1572,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link<V>(T item1, T item2, V value) where V : class
+        virtual public void Link<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -1471,7 +1583,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1491,7 +1603,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue<V>(T item1, T item2, out V value) where V : class
+        virtual public bool TryGetLinkValue<V>(T item1, T item2, out V value) where V : class
         {
             lock (WriteLock)
             {
@@ -1508,7 +1620,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Next(T item)
+        virtual public T Next(T item)
         {
             lock (WriteLock)
             {
@@ -1520,7 +1632,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Last(T item)
+        virtual public T Last(T item)
         {
             lock (WriteLock)
             {
@@ -1531,10 +1643,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class LinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, ILinkedGraphNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class
     {
         protected class Node
@@ -1776,7 +1916,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1787,7 +1927,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2) where V : class
+        virtual public bool HasLink<V>(T item1, T item2) where V : class
         {
             lock (WriteLock)
             {
@@ -1798,7 +1938,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2, V value) where V : class
+        virtual public bool HasLink<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -1813,7 +1953,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link<V>(T item1, T item2, V value) where V : struct
+        virtual public void Link<V>(T item1, T item2, V value) where V : struct
         {
             lock (WriteLock)
             {
@@ -1824,7 +1964,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -1844,7 +1984,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct
+        virtual public bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct
         {
             lock (WriteLock)
             {
@@ -1861,7 +2001,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Next(T item)
+        virtual public T Next(T item)
         {
             lock (WriteLock)
             {
@@ -1873,7 +2013,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T Last(T item)
+        virtual public T Last(T item)
         {
             lock (WriteLock)
             {
@@ -1884,10 +2024,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct
     {
         protected class Node
@@ -2129,7 +2297,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -2140,7 +2308,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2) where V : class
+        virtual public bool HasLink<V>(T item1, T item2) where V : class
         {
             lock (WriteLock)
             {
@@ -2151,7 +2319,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2, V value) where V : class
+        virtual public bool HasLink<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -2166,7 +2334,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link<V>(T item1, T item2, V value) where V : class
+        virtual public void Link<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -2177,7 +2345,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -2197,7 +2365,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue<V>(T item1, T item2, out V value) where V : class
+        virtual public bool TryGetLinkValue<V>(T item1, T item2, out V value) where V : class
         {
             lock (WriteLock)
             {
@@ -2214,7 +2382,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Next(T item)
+        virtual public T? Next(T item)
         {
             lock (WriteLock)
             {
@@ -2226,7 +2394,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Last(T item)
+        virtual public T? Last(T item)
         {
             lock (WriteLock)
             {
@@ -2237,10 +2405,38 @@ namespace MeowType.Collections.Graph
                 return null;
             }
         }
+
+        virtual public bool TryNext(T item, out T? next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T? last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct
     {
         protected class Node
@@ -2482,7 +2678,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool HasLink(T item1, T item2)
+        virtual public bool HasLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -2493,7 +2689,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2) where V : class
+        virtual public bool HasLink<V>(T item1, T item2) where V : class
         {
             lock (WriteLock)
             {
@@ -2504,7 +2700,7 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
-        public bool HasLink<V>(T item1, T item2, V value) where V : class
+        virtual public bool HasLink<V>(T item1, T item2, V value) where V : class
         {
             lock (WriteLock)
             {
@@ -2519,7 +2715,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public void Link<V>(T item1, T item2, V value) where V : struct
+        virtual public void Link<V>(T item1, T item2, V value) where V : struct
         {
             lock (WriteLock)
             {
@@ -2530,7 +2726,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool UnLink(T item1, T item2)
+        virtual public bool UnLink(T item1, T item2)
         {
             lock (WriteLock)
             {
@@ -2550,7 +2746,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct
+        virtual public bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct
         {
             lock (WriteLock)
             {
@@ -2567,7 +2763,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Next(T item)
+        virtual public T? Next(T item)
         {
             lock (WriteLock)
             {
@@ -2579,7 +2775,7 @@ namespace MeowType.Collections.Graph
             }
         }
 
-        public T? Last(T item)
+        virtual public T? Last(T item)
         {
             lock (WriteLock)
             {
@@ -2588,6 +2784,34 @@ namespace MeowType.Collections.Graph
                     return node.Last;
                 }
                 return null;
+            }
+        }
+
+        virtual public bool TryNext(T item, out T? next)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    next = node.Next;
+                    if (next != null) return true;
+                }
+                next = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryLast(T item, out T? last)
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(item, out var node))
+                {
+                    last = node.Last;
+                    if (last != null) return true;
+                }
+                last = null;
+                return false;
             }
         }
     }

@@ -37,6 +37,12 @@ namespace MeowType.Collections.Graph
         T Last(T item);
     }
 
+    public interface ILinkedGraphTryNextLast<T, V> : IReadOnlyLinkedGraph<T, V> where T : class
+    {
+        bool TryNext(T item, out T next);
+        bool TryLast(T item, out T last);
+    }
+
     public interface ILinkedGraphValueTryGetLinkValue<T, V> : IReadOnlyLinkedGraph<T, V> where V : struct
     {
         bool TryGetLinkValue(T item1, T item2, out V? value);
@@ -46,6 +52,12 @@ namespace MeowType.Collections.Graph
     {
         T? Next(T item);
         T? Last(T item);
+    }
+
+    public interface IValueLinkedGraphTryNextLast<T, V> : IReadOnlyLinkedGraph<T, V> where T : struct
+    {
+        bool TryNext(T item, out T? next);
+        bool TryLast(T item, out T? last);
     }
 
     public interface ILinkedGraph<T, V> : IDataGraph<T, V>, IReadOnlyLinkedGraph<T, V> { }
@@ -87,6 +99,12 @@ namespace MeowType.Collections.Graph
         T Last(T item);
     }
 
+    public interface ILinkedGraphTryNextLast<T> : IReadOnlyLinkedGraph<T> where T : class
+    {
+        bool TryNext(T item, out T next);
+        bool TryLast(T item, out T last);
+    }
+
     public interface ILinkedGraphValueTryGetLinkValue<T> : IReadOnlyLinkedGraph<T> 
     {
         bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct;
@@ -101,6 +119,12 @@ namespace MeowType.Collections.Graph
     {
         T? Next(T item);
         T? Last(T item);
+    }
+
+    public interface IValueLinkedGraphTryNextLast<T> : IReadOnlyLinkedGraph<T> where T : struct
+    {
+        bool TryNext(T item, out T? next);
+        bool TryLast(T item, out T? last);
     }
 
     public interface ILinkedGraph<T> : IDataGraph<T>, IReadOnlyLinkedGraph<T> { }
