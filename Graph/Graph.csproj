@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,9 +12,10 @@
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>2.2.1</Version>
+    <Version>2.2.2</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Provides numerous graph theory based Graph Collections</Description>
+    <Summary>Provides numerous graph theory based Graph Collections</Summary>
     <PackageTags>graph theory graph collections</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>

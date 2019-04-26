@@ -1579,7 +1579,10 @@ namespace MeowType.Collections.Graph
                 var from_node = GetOrAddNode(item1);
                 var to_node = GetOrAddNode(item2);
                 var vals = link_table.GetOrAdd((item1, item2), (_) => new ConcurrentDictionary<Type, object>());
+                link_table.GetOrAdd((item2, item1), (_) => vals);
                 vals.AddOrUpdate(typeof(V), value, (_t, _v) => value);
+                from_node.Next = item2;
+                to_node.Last = item1;
             }
         }
 
@@ -1960,7 +1963,10 @@ namespace MeowType.Collections.Graph
                 var from_node = GetOrAddNode(item1);
                 var to_node = GetOrAddNode(item2);
                 var vals = link_table.GetOrAdd((item1, item2), (_) => new ConcurrentDictionary<Type, object>());
+                link_table.GetOrAdd((item2, item1), (_) => vals);
                 vals.AddOrUpdate(typeof(V), value, (_t, _v) => value);
+                from_node.Next = item2;
+                to_node.Last = item1;
             }
         }
 
@@ -2341,7 +2347,10 @@ namespace MeowType.Collections.Graph
                 var from_node = GetOrAddNode(item1);
                 var to_node = GetOrAddNode(item2);
                 var vals = link_table.GetOrAdd((item1, item2), (_) => new ConcurrentDictionary<Type, object>());
+                link_table.GetOrAdd((item2, item1), (_) => vals);
                 vals.AddOrUpdate(typeof(V), value, (_t, _v) => value);
+                from_node.Next = item2;
+                to_node.Last = item1;
             }
         }
 
@@ -2722,7 +2731,10 @@ namespace MeowType.Collections.Graph
                 var from_node = GetOrAddNode(item1);
                 var to_node = GetOrAddNode(item2);
                 var vals = link_table.GetOrAdd((item1, item2), (_) => new ConcurrentDictionary<Type, object>());
+                link_table.GetOrAdd((item2, item1), (_) => vals);
                 vals.AddOrUpdate(typeof(V), value, (_t, _v) => value);
+                from_node.Next = item2;
+                to_node.Last = item1;
             }
         }
 
