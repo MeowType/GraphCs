@@ -52,7 +52,7 @@ namespace MeowType.Collections.Graph
 
     public interface IDataGraphTryGet<T> : IReadOnlyDataGraph<T>
     {
-        bool TryGetValues<V>(T from, T to, out IEnumerable<V> values) where V : class;
+        bool TryGetValues(T from, T to, out IEnumerable<object> values);
     }
 
     public interface IDataGraphValueSet<T> : IDataGraph<T>
@@ -70,11 +70,6 @@ namespace MeowType.Collections.Graph
     {
         bool UnSet<V>(T item1, T item2) where V : struct;
         bool UnSet<V>(T item1, T item2, V value) where V : struct;
-    }
-
-    public interface IDataGraphValueTryGet<T> : IReadOnlyDataGraph<T>
-    {
-        bool TryGetValues<V>(T from, T to, out IEnumerable<V> values) where V : struct;
     }
 
     public interface IDataGraph<T> : IGraph<T>, IReadOnlyDataGraph<T> { }

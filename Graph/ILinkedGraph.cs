@@ -61,8 +61,9 @@ namespace MeowType.Collections.Graph
     }
     public interface ILinkedGraphHasLink<T> : IReadOnlyLinkedGraph<T>
     {
-        bool HasLink(T item1, T item2);
-        bool HasLink<V>(T item1, T item2, V value);
+        bool HasLink(T item1, T item2) ;
+        bool HasLink<V>(T item1, T item2) where V : class;
+        bool HasLink<V>(T item1, T item2, V value) where V : class;
     }
 
     public interface ILinkedGraphUnLink<T> : ILinkedGraph<T>
@@ -72,7 +73,7 @@ namespace MeowType.Collections.Graph
 
     public interface ILinkedGraphLink<T> : ILinkedGraph<T>
     {
-        void Link<V>(T item1, T item2, V value);
+        void Link<V>(T item1, T item2, V value) where V : class;
     }
 
     public interface ILinkedGraphTryGetLinkValue<T> : IReadOnlyLinkedGraph<T> 
@@ -89,6 +90,11 @@ namespace MeowType.Collections.Graph
     public interface ILinkedGraphValueTryGetLinkValue<T> : IReadOnlyLinkedGraph<T> 
     {
         bool TryGetLinkValue<V>(T item1, T item2, out V? value) where V : struct;
+    }
+
+    public interface ILinkedGraphValueLink<T> : ILinkedGraph<T>
+    {
+        void Link<V>(T item1, T item2, V value) where V : struct;
     }
 
     public interface IValueLinkedGraphNextLast<T> : IReadOnlyLinkedGraph<T> where T : struct
