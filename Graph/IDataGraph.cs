@@ -25,7 +25,6 @@ namespace MeowType.Collections.Graph
 
     public interface IDataGraphTryGet<T, V>
     {
-        IEnumerable<V> this[T from, T to] { get; }
         bool TryGetValues(T from, T to, out IEnumerable<V> values);
     }
 
@@ -104,5 +103,22 @@ namespace MeowType.Collections.Graph
     public interface IDataSingleGraph<T> : IDataGraph<T>, IReadOnlyDataSingleGraph<T> { }
     public interface IReadOnlyDataSingleGraph<T> : IReadOnlyDataGraph<T> { }
 
+    #endregion
+
+    #region GetGraph
+    interface IGetGraphGet<T, V> : IDataGraph<T, V>
+    {
+        bool TryGetValue(T from, T to, out V value);
+    }
+
+    interface IGetGraphGet<T> : IDataGraph<T>
+    {
+        bool TryGetValue<V>(T from, T to, out V value) where V : class;
+    }
+
+    interface IGetGraphValueGet<T> : IDataGraph<T>
+    {
+        bool TryGetValue<V>(T from, T to, out V? value) where V : struct;
+    }
     #endregion
 }

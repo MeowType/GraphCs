@@ -12,7 +12,7 @@
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>2.2.2</Version>
+    <Version>2.2.3</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Provides numerous graph theory based Graph Collections</Description>
     <Summary>Provides numerous graph theory based Graph Collections</Summary>

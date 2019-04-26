@@ -1293,7 +1293,7 @@ namespace MeowType.Collections.Graph
 
 
     [Serializable]
-    public class LinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGetGraphGet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class
     {
         protected class Node
@@ -1674,10 +1674,35 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
+
+        virtual public bool TryGetValue<V>(T from, T to, out V value) where V : class
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        if(vals.TryGetValue(typeof(V), out var val))
+                        {
+                            value = (V)val;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                value = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class LinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class LinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, ILinkedGraphNextLast<T>, ILinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGetGraphValueGet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : class
     {
         protected class Node
@@ -2058,10 +2083,35 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
+
+        virtual public bool TryGetValue<V>(T from, T to, out V? value) where V : struct
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        if (vals.TryGetValue(typeof(V), out var val))
+                        {
+                            value = (V)val;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                value = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraph<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphHas<T>, IDataGraphSet<T>, IDataGraphTryGet<T>, IDataGraphUnSet<T>, IGetGraphGet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct
     {
         protected class Node
@@ -2442,10 +2492,35 @@ namespace MeowType.Collections.Graph
                 return false;
             }
         }
+
+        virtual public bool TryGetValue<V>(T from, T to, out V value) where V : class
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        if (vals.TryGetValue(typeof(V), out var val))
+                        {
+                            value = (V)val;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                value = null;
+                return false;
+            }
+        }
     }
 
     [Serializable]
-    public class ValueLinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
+    public class ValueLinkedGraphValue<T> : ILinkedGraph<T>, ILinkedGraphHasLink<T>, ILinkedGraphValueLink<T>, ILinkedGraphUnLink<T>, ILinkedGraphTryGet<T>, ILinkedGraphValueTryGetLinkValue<T>, IValueLinkedGraphNextLast<T>, IValueLinkedGraphTryNextLast<T>, IDataGraph<T>, IDataGraphValueHas<T>, IDataGraphValueSet<T>, IDataGraphTryGet<T>, IDataGraphValueUnSet<T>, IGetGraphValueGet<T>, IGraph<T>, IGraphHas<T>, IGraphUnSet<T>
         where T : struct
     {
         protected class Node
@@ -2823,6 +2898,31 @@ namespace MeowType.Collections.Graph
                     if (last != null) return true;
                 }
                 last = null;
+                return false;
+            }
+        }
+
+        virtual public bool TryGetValue<V>(T from, T to, out V? value) where V : struct
+        {
+            lock (WriteLock)
+            {
+                if (inner_table.TryGetValue(from, out var from_node) && inner_table.TryGetValue(to, out var to_node))
+                {
+                    if (from_node.bind.TryGetValue(to, out var vals) && to_node.bind.ContainsKey(from))
+                    {
+                        if (vals.TryGetValue(typeof(V), out var val))
+                        {
+                            value = (V)val;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        from_node.bind.TryRemove(to, out var _);
+                        to_node.bind.TryRemove(from, out var _);
+                    }
+                }
+                value = null;
                 return false;
             }
         }
